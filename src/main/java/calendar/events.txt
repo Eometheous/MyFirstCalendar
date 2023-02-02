@@ -1,0 +1,24 @@
+CS 147 Computer Architecture
+MW 13:30 14:45 1/25/23 5/17/23
+CS 149 Operating Systems
+TR 7:30 8:45 1/26/23 5/16/23
+CS 151 Object-Oriented Design
+TR 9:00 10:15 1/26/23 5/16/23
+ASTR 101 Astronomy
+TR 12:00 13:15 1/26/23 5/16/23
+Christian Visiting
+2/4/23 12:00 20:00
+Antoine's Birthday Party
+3/10/23 15:00 20:00
+Test Event
+2/1/23 15:00 20:00
+Test Event2
+2/1/23 14:00 21:00
+Test Event3
+2/1/23 14:00 18:00
+Test Event4
+2/1/23 18:00 21:00
+Woooo!
+2/1/23 8:00 12:00
+Woohooo!
+2/1/23 20:00 21:00
