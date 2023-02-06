@@ -10,15 +10,3 @@ Christian Visiting
 2/4/23 12:00 20:00
 Antoine's Birthday Party
 3/10/23 15:00 20:00
-Test Event
-2/1/23 15:00 20:00
-Test Event2
-2/1/23 14:00 21:00
-Test Event3
-2/1/23 14:00 18:00
-Test Event4
-2/1/23 18:00 21:00
-Woooo!
-2/1/23 8:00 12:00
-Woohooo!
-2/1/23 20:00 21:00
