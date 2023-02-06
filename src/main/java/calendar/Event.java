@@ -1,61 +1,31 @@
 package calendar;
 
-import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 
-public class Event {
-    private String name;
-    private LocalDate date;
-    private TimeInterval timeInterval;
+abstract class Event implements Comparable<Event> {
+    protected String name;
+    protected TimeInterval timeInterval;
 
-    public Event() {
-        name = "untitled";
-        date = LocalDate.now();
-        timeInterval = new TimeInterval();
-    }
-
-    public Event(String n, LocalDate d, LocalTime sT, LocalTime eT) {
-        name = n;
-        date = d;
-        timeInterval = new TimeInterval(sT, eT);
-    }
-
-    public Event(String n, LocalDate d, TimeInterval timeInterval) {
-        name = n;
-        date = d;
-        this.timeInterval = timeInterval;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
+    public Event(String name, LocalTime sT, LocalTime eT) {
         this.name = name;
+        this.timeInterval = new TimeInterval(sT, eT);
     }
 
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
-
-    public TimeInterval getTimeInterval() {
-        return timeInterval;
-    }
-
-    public void setTimeInterval(TimeInterval timeInterval) {
+    public Event(String name, TimeInterval timeInterval) {
+        this.name = name;
         this.timeInterval = timeInterval;
     }
 
-    @Override
-    public String toString() {
-        DateTimeFormatter year = DateTimeFormatter.ofPattern("yyyy");
-        DateTimeFormatter day = DateTimeFormatter.ofPattern("d");
-        DateTimeFormatter dayMonthDay = DateTimeFormatter.ofPattern("EEEE, MMMM d");
-        return String.format("%s %s %s", dayMonthDay.format(date), timeInterval, name);
+    /**
+     * Compares this event with event e
+     * @param e the object to be compared.
+     * @return  -1 if it is before this event, 1 if it is after this event, and 0 if it is the same day as this event
+     */
+    public int compareTo(Event e) {
+        if (timeInterval.getStart().isBefore(e.getTimeInterval().getStart())) return -1;
+        else if (timeInterval.getStart().isAfter(e.getTimeInterval().getStart())) return 1;
+        return 0;
     }
+
+    public TimeInterval getTimeInterval() {return timeInterval;}
 }
