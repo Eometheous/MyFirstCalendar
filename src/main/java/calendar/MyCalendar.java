@@ -23,6 +23,8 @@ public class MyCalendar {
         firstDay = LocalDate.of(today.getYear(), today.getMonth(), 1);
         lastDay = firstDay.lengthOfMonth();
     }
+    public ArrayList<OneTimeEvent> getOneTimeEventsList() {return oneTimeEventsList;}
+    public ArrayList<RecurringEvent> getRecurringEventsList() {return  recurringEventsList;}
 
     /**
      * Adds a one time event to the event list. If the event conflicts with an existing event
@@ -127,13 +129,14 @@ public class MyCalendar {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("One Time Events:\n");
         for (Event i : oneTimeEventsList) {
-            stringBuilder.append(i).append("\n");
+            stringBuilder.append(i);
         }
         stringBuilder.append("\n");
         stringBuilder.append("Recurring Events:\n");
         for (Event i : recurringEventsList) {
-            stringBuilder.append(i).append("\n");
+            stringBuilder.append(i);
         }
+        stringBuilder.append("\n");
         return stringBuilder.toString();
     }
 
@@ -154,11 +157,12 @@ public class MyCalendar {
                     if (e.getClass().equals(OneTimeEvent.class)) {
                         oneTimeEventsList.remove(e);
                     }
-//                    else if (e.getClass().equals(RecurringEvent.class)) {
-//                        for (LocalDate d : ((RecurringEvent) e).getDates()) {
-//                            d.
-//                        }
-//                    }
+                    else if (e.getClass().equals(RecurringEvent.class)) {
+                        ((RecurringEvent) e).getDates().remove(date);
+                        if (((RecurringEvent) e).getDates().isEmpty()) {
+                            recurringEventsList.remove(e);
+                        }
+                    }
                     if (!eventList.isEmpty()) events.put(date, eventList); // re add the eventList
                     return true;
                 }
