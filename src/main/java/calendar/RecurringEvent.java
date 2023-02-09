@@ -8,14 +8,11 @@ import java.util.ArrayList;
 public class RecurringEvent extends Event implements Comparable<RecurringEvent>{
     private final ArrayList<LocalDate> dates;
     private final String days;
-    private final LocalDate startDate, endDate;
 
-    public RecurringEvent(String n, String days, LocalDate sD, LocalDate eD, LocalTime sT, LocalTime eT) {
+    public RecurringEvent(String n, String days, LocalDate startDate, LocalDate endDate, LocalTime sT, LocalTime eT) {
         super(n, sT, eT);
         dates = new ArrayList<>();
         this.days = days;
-        startDate = sD;
-        endDate = eD;
         int[] recurringDays = convertDaysToDayOfWeekValue(days);
         LocalDate[] recurringDates = new LocalDate[recurringDays.length];
         recurringDates[0] = startDate;
@@ -56,18 +53,26 @@ public class RecurringEvent extends Event implements Comparable<RecurringEvent>{
     }
 
     public ArrayList<LocalDate> getDates() {return dates;}
-    public LocalDate getStartDate() {return startDate;}
+    public LocalDate getStartDate() {return dates.get(0);}
+    public LocalDate getEndDate() {return dates.get(dates.size() - 1);}
+
+    public String save() {
+        DateTimeFormatter monthDayYear = DateTimeFormatter.ofPattern("M/d/yy");
+        return String.format("%s\n%s %s %s %s\n", name,
+                days, monthDayYear.format(getStartDate()), monthDayYear.format(getEndDate()), timeInterval);
+    }
 
     @Override
     public int compareTo(RecurringEvent o) {
-        if (startDate.isBefore(o.getStartDate()) && timeInterval.getStart().isBefore(o.getTimeInterval().getStart())) return -1;
-        else if (startDate.isAfter(o.getStartDate()) && timeInterval.getStart().isAfter(o.getTimeInterval().getStart())) return 1;
+        if (getStartDate().isBefore(o.getStartDate()) && timeInterval.getStart().isBefore(o.getTimeInterval().getStart())) return -1;
+        else if (getStartDate().isAfter(o.getStartDate()) && timeInterval.getStart().isAfter(o.getTimeInterval().getStart())) return 1;
         return 0;
     }
 
     @Override
     public String toString() {
         DateTimeFormatter monthDayYear = DateTimeFormatter.ofPattern("M/d/yy");
-        return String.format("%s\n\tEvery %s from %s from %s to %s", name, days, timeInterval, monthDayYear.format(startDate), monthDayYear.format(endDate));
+        return String.format("%s\n\tEvery %s from %s from %s to %s\n", name, days, timeInterval,
+                monthDayYear.format(getStartDate()), monthDayYear.format(getEndDate()));
     }
 }
