@@ -1,7 +1,6 @@
 package calendar;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -127,7 +126,7 @@ public class MyCalendarTester {
         viewByDay();
     }
     public static void eventList() {
-        System.out.println(myCalendar.displayEventsList());
+        System.out.print(myCalendar.displayEventsList());
     }
     public static void delete() {
         String option;
@@ -147,7 +146,7 @@ public class MyCalendarTester {
         DateTimeFormatter monthDayYear = DateTimeFormatter.ofPattern("M/d/yyyy");
         LocalDate date = LocalDate.parse(stdio.nextLine(), monthDayYear);
         myCalendar.goTo(date);
-        System.out.println(myCalendar.displaySelectedDay());
+        System.out.print(myCalendar.displaySelectedDay());
         System.out.print("Enter the name of the event to delete: ");
         String name = stdio.nextLine();
         if (myCalendar.deleteEvent(name, date)) System.out.println("Event Deleted");
@@ -204,6 +203,18 @@ public class MyCalendarTester {
     }
 
     public static boolean saveFile() {
+        try (FileWriter fileWriter = new FileWriter("output.txt")) {
+            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+            for (OneTimeEvent e: myCalendar.getOneTimeEventsList()) {
+                bufferedWriter.write(e.save());
+            }
+            for (RecurringEvent e: myCalendar.getRecurringEventsList()) {
+                bufferedWriter.write(e.save());
+            }
+            bufferedWriter.close();
+        } catch (IOException e) {
+            return false;
+        }
         return true;
     }
 }
