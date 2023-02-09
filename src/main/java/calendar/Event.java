@@ -11,10 +11,5 @@ abstract class Event {
         this.timeInterval = new TimeInterval(sT, eT);
     }
 
-    public Event(String name, TimeInterval timeInterval) {
-        this.name = name;
-        this.timeInterval = timeInterval;
-    }
-
     public TimeInterval getTimeInterval() {return timeInterval;}
 }
