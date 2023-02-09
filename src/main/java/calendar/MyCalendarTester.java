@@ -58,7 +58,7 @@ public class MyCalendarTester {
 
     }
 
-    private static void viewByMenu() {
+    public static void viewByMenu() {
         String option;
         do {
             System.out.println(VIEW_BY_OPTIONS);
@@ -94,7 +94,7 @@ public class MyCalendarTester {
         } while (!option.equals("M"));
     }
 
-    private static void createMenu() {
+    public static void createMenu() {
         String name;
         LocalDate date;
         LocalTime startTime, endTime;
@@ -110,8 +110,8 @@ public class MyCalendarTester {
         startTime = LocalTime.parse(stdio.nextLine(), hourMinute);
         System.out.print("End time (Hour:minute): ");
         endTime = LocalTime.parse(stdio.nextLine(), hourMinute);
-
-        if (myCalendar.addEvent(name, date, startTime, endTime)) {
+        OneTimeEvent event = new OneTimeEvent(name, date, startTime, endTime);
+        if (myCalendar.add(event)) {
             System.out.println("Event added");
         }
         else System.out.println("Failed to add event: Event conflicted with another.");
@@ -183,15 +183,15 @@ public class MyCalendarTester {
 
                     LocalDate startDate = LocalDate.parse(splitInfo[3], monthDayYear);
                     LocalDate endDate = LocalDate.parse(splitInfo[4], monthDayYear);
-
-                    myCalendar.addRecurringEvent(name, splitInfo[0], startDate, endDate, startTime, endTime);
+                    RecurringEvent event = new RecurringEvent(name, splitInfo[0], startDate, endDate, startTime, endTime);
+                    myCalendar.add(event);
                 }
                 else {
                     LocalDate date = LocalDate.parse(splitInfo[0], monthDayYear);
                     LocalTime startTime = LocalTime.parse(splitInfo[1], hourMinute);
                     LocalTime endTime = LocalTime.parse(splitInfo[2], hourMinute);
-
-                    myCalendar.addEvent(name, date, startTime, endTime);
+                    OneTimeEvent event = new OneTimeEvent(name, date, startTime, endTime);
+                    myCalendar.add(event);
                 }
 
             }
