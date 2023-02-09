@@ -1,7 +1,6 @@
 package calendar;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,24 +27,19 @@ public class MyCalendar {
     /**
      * Adds a one time event to the event list. If the event conflicts with an existing event
      * it is not added to the list.
-     * @param name  the name of the event
-     * @param date  the date the event takes place
-     * @param sT    the start time of the event
-     * @param eT    the end time of the event
-     * @return      true if the event is successfully added and false if it conflicts with an event
+     * @param newEvent  the event being added
+     * @return          true if the event is successfully added and false if it conflicts with an event
      */
-    public boolean addEvent(String name, LocalDate date, LocalTime sT, LocalTime eT) {
-        TimeInterval eventTimeInterval = new TimeInterval(sT, eT);
-
+    public boolean add(OneTimeEvent newEvent) {
         // grab the eventList for this date
-        ArrayList<Event> eventList = events.get(date);
+        ArrayList<Event> eventList = events.get(newEvent.getDate());
 
         // if there is an event list for this date
         // go through each event to make sure the event TimeInterval isn't conflicting
         if (eventList != null) {
             for (Event e : eventList) {
                 // the eventTimeInterval is conflicting, don't add the event
-                if (eventTimeInterval.isConflicting(e.getTimeInterval())) {
+                if (newEvent.getTimeInterval().isConflicting(e.getTimeInterval())) {
                     return false;   // the event is conflicting, don't add it
                 }
             }
@@ -55,53 +49,30 @@ public class MyCalendar {
             eventList = new ArrayList<>();
         }
 
-        // add the new Event to the eventList
-        OneTimeEvent event = new OneTimeEvent(name, date, eventTimeInterval);
-        eventList.add(event);                   // add event to eventList for this date
-        oneTimeEventsList.add(event);               // add event to oneTimeEvents list
-        oneTimeEventsList.sort(Event::compareTo);   // sort by start time
-        eventList.sort(Event::compareTo);       // sort by start time
-        events.put(date, eventList);            // add event to events list
+        eventList.add(newEvent);                            // add event to eventList for this date
+        oneTimeEventsList.add(newEvent);                    // add event to oneTimeEvents list
+        oneTimeEventsList.sort(OneTimeEvent::compareTo);    // sort by start time
+        events.put(newEvent.getDate(), eventList);          // add event to events list
         return true;
     }
 
     /**
      * Adds a recurring event to the calendar. This is only done through loading events from
      * events.txt and is not currently possible through the user in the create event option
-     * @param name      the name of the recurring event
-     * @param days      the days the event recurs on
-     * @param firstDay  the first day of the event
-     * @param lastDay   the last day of the event
-     * @param startTime the start time of the event
-     * @param endTime   the end time of the event
+     * @param newEvent  the event being added
      */
-    public void addRecurringEvent(String name, String days, LocalDate firstDay,
-                                     LocalDate lastDay, LocalTime startTime, LocalTime endTime) {
-        // Converting the String days into integers for the day of the week
-        char[] daysToCharArr = days.toCharArray();
-        int[] recurringDays = new int[daysToCharArr.length];
-        for (int i = 0; i< daysToCharArr.length; i++) {
-            if (daysToCharArr[i] == 'S') recurringDays[i] = 7;
-            else if (daysToCharArr[i] == 'M') recurringDays[i] = 1;
-            else if (daysToCharArr[i] == 'T') recurringDays[i] = 2;
-            else if (daysToCharArr[i] == 'W') recurringDays[i] = 3;
-            else if (daysToCharArr[i] == 'R') recurringDays[i] = 4;
-            else if (daysToCharArr[i] == 'F') recurringDays[i] = 5;
-            else recurringDays[i] = 6;
-        }
-
-        RecurringEvent recurringEvent = new RecurringEvent(name, recurringDays, firstDay, lastDay, startTime, endTime);
-
+    public void add(RecurringEvent newEvent) {
         // for every date the event recurs on, add it to the calendar
-        for (LocalDate d : recurringEvent.getDates()) {
+        for (LocalDate d : newEvent.getDates()) {
             ArrayList<Event> eventList = events.get(d);
             if (eventList == null) {
                 eventList = new ArrayList<>();
             }
-            eventList.add(recurringEvent);
+            eventList.add(newEvent);
             events.put(d, eventList);
         }
-        recurringEventsList.add(recurringEvent);
+        recurringEventsList.add(newEvent);
+        recurringEventsList.sort(RecurringEvent::compareTo);
     }
 
     /**
