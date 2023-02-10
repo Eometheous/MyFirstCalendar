@@ -5,6 +5,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * Personal implementation of a Calendar similar to one that might be seen
+ * on a phone. {@code MyCalendar} can add, remove, and display events.
+ * {@code MyCalendar} can be outputted as a String showing a day view a month view,
+ * or a combination of both.
+ * @author Jonathan Stewart Thomas
+ * @version 1.0.0.020923
+ */
 public class MyCalendar {
     private final HashMap<LocalDate, ArrayList<Event>> events;
     private final ArrayList<RecurringEvent> recurringEventsList;
@@ -14,6 +22,11 @@ public class MyCalendar {
     private LocalDate selectedDay;
     private int lastDay;
 
+    /**
+     * Creates a new {@code MyCalendar}.
+     * Gets today's date and uses it to get the first day and last day of today's
+     * month.
+     */
     public MyCalendar() {
         events = new HashMap<>();
         recurringEventsList = new ArrayList<>();
@@ -23,11 +36,21 @@ public class MyCalendar {
         firstDay = LocalDate.of(today.getYear(), today.getMonth(), 1);
         lastDay = firstDay.lengthOfMonth();
     }
+
+    /**
+     * Gets an {@code ArrayList} of {@code OneTimeEvent}.
+     * @return  the {@code ArrayList}
+     */
     public ArrayList<OneTimeEvent> getOneTimeEventsList() {return oneTimeEventsList;}
+
+    /**
+     * Gets an {@code ArrayList} of {@code RecurringEvent}.
+     * @return  the {@code ArrayList}
+     */
     public ArrayList<RecurringEvent> getRecurringEventsList() {return  recurringEventsList;}
 
     /**
-     * Adds a one time event to the event list. If the event conflicts with an existing event
+     * Adds a {@code OneTimeEvent} to the event list. If the event conflicts with an existing event
      * it is not added to the list.
      * @param newEvent  the event being added
      * @return          true if the event is successfully added and false if it conflicts with an event
@@ -39,9 +62,9 @@ public class MyCalendar {
         // if there is an event list for this date
         // go through each event to make sure the event TimeInterval isn't conflicting
         if (eventList != null) {
-            for (Event e : eventList) {
+            for (Event event : eventList) {
                 // the eventTimeInterval is conflicting, don't add the event
-                if (newEvent.getTimeInterval().isConflicting(e.getTimeInterval())) {
+                if (newEvent.timeInterval.isConflicting(event.timeInterval)) {
                     return false;   // the event is conflicting, don't add it
                 }
             }
@@ -59,19 +82,18 @@ public class MyCalendar {
     }
 
     /**
-     * Adds a recurring event to the calendar. This is only done through loading events from
-     * events.txt and is not currently possible through the user in the create event option
+     * Adds a {@code RecurringEvent} to the calendar.
      * @param newEvent  the event being added
      */
     public void add(RecurringEvent newEvent) {
         // for every date the event recurs on, add it to the calendar
-        for (LocalDate d : newEvent.getDates()) {
-            ArrayList<Event> eventList = events.get(d);
+        for (LocalDate date : newEvent.getDates()) {
+            ArrayList<Event> eventList = events.get(date);
             if (eventList == null) {
                 eventList = new ArrayList<>();
             }
             eventList.add(newEvent);
-            events.put(d, eventList);
+            events.put(date, eventList);
         }
         recurringEventsList.add(newEvent);
         recurringEventsList.sort(RecurringEvent::compareTo);
@@ -122,19 +144,26 @@ public class MyCalendar {
     }
 
     /**
-     * Displays all one time and recurring events.
-     * @return  a string of the events list
+     * Outputs a String of the event list.
+     * @return  String of the events list
      */
     public String displayEventsList() {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("One Time Events:\n");
-        for (Event i : oneTimeEventsList) {
-            stringBuilder.append(i);
+        LocalDate date = oneTimeEventsList.get(0).getDate();
+        DateTimeFormatter dayMonthDay = DateTimeFormatter.ofPattern("EEEE, MMMM d");
+        stringBuilder.append(dayMonthDay.format(date)).append("\n");
+        for (OneTimeEvent event : oneTimeEventsList) {
+            if (!date.equals(event.getDate())) {
+                date = event.getDate();
+                stringBuilder.append("\n").append(dayMonthDay.format(date)).append("\n");
+            }
+            stringBuilder.append(event);
         }
         stringBuilder.append("\n");
         stringBuilder.append("Recurring Events:\n");
-        for (Event i : recurringEventsList) {
-            stringBuilder.append(i);
+        for (RecurringEvent e : recurringEventsList) {
+            stringBuilder.append(e);
         }
         stringBuilder.append("\n");
         return stringBuilder.toString();
@@ -151,16 +180,16 @@ public class MyCalendar {
         // there are events on this date
         if (eventList != null) {
             // go through each event and delete the one with the name specified
-            for (Event e : eventList) {
-                if (e.name.equals(name)) {
-                    eventList.remove(e);
-                    if (e.getClass().equals(OneTimeEvent.class)) {
-                        oneTimeEventsList.remove(e);
+            for (Event event : eventList) {
+                if (event.name.equals(name)) {
+                    eventList.remove(event);
+                    if (event.getClass().equals(OneTimeEvent.class)) {
+                        oneTimeEventsList.remove(event);
                     }
-                    else if (e.getClass().equals(RecurringEvent.class)) {
-                        ((RecurringEvent) e).getDates().remove(date);
-                        if (((RecurringEvent) e).getDates().isEmpty()) {
-                            recurringEventsList.remove(e);
+                    else if (event.getClass().equals(RecurringEvent.class)) {
+                        ((RecurringEvent) event).getDates().remove(date);
+                        if (((RecurringEvent) event).getDates().isEmpty()) {
+                            recurringEventsList.remove(event);
                         }
                     }
                     if (!eventList.isEmpty()) events.put(date, eventList); // re add the eventList
@@ -173,7 +202,7 @@ public class MyCalendar {
     }
 
     /**
-     * Deletes every event, both recurring and one time.
+     * Deletes every event on {@code MyCalendar}.
      */
     public void deleteAllEvents() {
         events.clear();
@@ -182,7 +211,7 @@ public class MyCalendar {
     }
 
     /**
-     * Deletes on events on a specific date.
+     * Deletes all events on a specific date.
      * @param date  the date the events are being deleted on
      */
     public void deleteAllEventsOn(LocalDate date) {
@@ -190,28 +219,27 @@ public class MyCalendar {
         if (eventList != null) {
             eventList.clear();
         }
-        oneTimeEventsList.removeIf(e -> e.getDate().equals(date));
-//        recurringEvents.removeIf(e -> e.getDates().contains(date));
+        oneTimeEventsList.removeIf(event -> event.getDate().equals(date));
     }
 
     /**
      * Deletes all recurring events
      */
     public void deleteAllRecurringEvents() {
-        for (RecurringEvent e: recurringEventsList) {
-            for (LocalDate d: e.getDates()) {
-                ArrayList<Event> eventList = events.remove(d);
-                eventList.remove(e);
+        for (RecurringEvent event: recurringEventsList) {
+            for (LocalDate date: event.getDates()) {
+                ArrayList<Event> eventList = events.remove(date);
+                eventList.remove(event);
                 // if there are still events on this date, add it back to the events list
-                if (!eventList.isEmpty()) events.put(d, eventList);
+                if (!eventList.isEmpty()) events.put(date, eventList);
             }
         }
         recurringEventsList.clear();
     }
 
     /**
-     * Displays a month view of the calendar with the month and year at the top.
-     * @return  the string of the month view.
+     * Outputs a month view of {@code MyCalendar} as a String with the month and year at the top.
+     * @return  the String of the month view.
      */
     public String displayMonth() {
         DateTimeFormatter monthYear = DateTimeFormatter.ofPattern("MMM yyyy");
@@ -257,15 +285,15 @@ public class MyCalendar {
     }
 
     /**
-     * Displays events scheduled today
-     * @return  a string of today's events
+     * Outputs today's events as a String
+     * @return  a String of today's events
      */
     public String displayTodaysEvents() {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Today's Events:\n");
         if  (events.get(today) != null) {
-            for (Event i : events.get(today)) {
-                stringBuilder.append(i);
+            for (Event event : events.get(today)) {
+                stringBuilder.append(event);
                 stringBuilder.append("\n");
             }
         }
@@ -274,22 +302,27 @@ public class MyCalendar {
     }
 
     /**
-     * Displays events on the selected day
-     * @return  a string of the selected day's events
+     * Outputs a String of events on the selected day
+     * @return  String of the selected day's events
      */
     public String displaySelectedDay() {
         StringBuilder stringBuilder = new StringBuilder();
         DateTimeFormatter dayMonthDay = DateTimeFormatter.ofPattern("EEEE, MMMM d");
         stringBuilder.append(dayMonthDay.format(selectedDay)).append("\n");
         if  (events.get(selectedDay) != null) {
-            for (Event i : events.get(selectedDay)) {
-                stringBuilder.append(i);
-                stringBuilder.append("\n");
+            for (Event event : events.get(selectedDay)) {
+                stringBuilder.append(event);
             }
         }
         else stringBuilder.append("No Events Today\n");
+        stringBuilder.append("\n");
         return stringBuilder.toString();
     }
+
+    /**
+     * Outputs {@code MyCalendar} as a String with the month view and today's events.
+     * @return  String of {@code MyCalendar}
+     */
     @Override
     public String toString() {
         return displayMonth() + displayTodaysEvents();
