@@ -14,10 +14,9 @@ import java.util.Scanner;
  * and months or jump to a specific date. Today's date is shown with [] brackets and dates with an event have {} brackets.
  * Events can be added and deleted on {@code MyCalendar}.
  * @author Jonathan Stewart Thomas
- * @version 1.0.0.230210
+ * @version 1.0.1.230211
  */
 public class MyCalendarTester {
-    private static final String FILEPATH = "src/main/java/calendar/events.txt";
     private static final String MAIN_MENU_OPTIONS = """
             Main Menu\s
             Select one of the following options\s
@@ -36,8 +35,7 @@ public class MyCalendarTester {
             [S]elected [A]ll [E]vents on... [R]ecurring
             """;
     private static MyCalendar myCalendar;
-
-    private static final Scanner stdio = new Scanner(System.in);
+    private static Scanner stdio;
 
     /**
      * The main method of this program.
@@ -48,11 +46,13 @@ public class MyCalendarTester {
      */
     public static void main(String[] args) {
         myCalendar = new MyCalendar();
+        stdio = new Scanner(System.in);
         if (readFile()) {
             System.out.println("Loading is done!");
         }
         runMainMenu();
         System.out.println("Goodbye!");
+        stdio.close();
         if(saveFile()) {
             System.out.println("Events saved to output.txt");
         }
@@ -238,7 +238,7 @@ public class MyCalendarTester {
      */
     public static boolean readFile() {
         try {
-            Scanner scannerTextFile = new Scanner(new File(FILEPATH));
+            Scanner scannerTextFile = new Scanner(new File("events.txt"));
             while (scannerTextFile.hasNextLine()) {
                 String name = scannerTextFile.nextLine();
 
