@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.TreeSet;
 
 /**
  * Personal implementation of a Calendar similar to one that might be seen
@@ -11,12 +12,12 @@ import java.util.HashMap;
  * {@code MyCalendar} can be outputted as a String showing a day view a month view,
  * or a combination of both.
  * @author Jonathan Stewart Thomas
- * @version 1.0.0.020923
+ * @version 1.0.1.230215
  */
 public class MyCalendar {
-    private final HashMap<LocalDate, ArrayList<Event>> events;
+    private final HashMap<LocalDate, TreeSet<Event>> events;
     private final ArrayList<RecurringEvent> recurringEventsList;
-    private final ArrayList<OneTimeEvent> oneTimeEventsList;
+    private final ArrayList<Event> oneTimeEventsList;
     private final LocalDate today;
     private LocalDate firstDay;
     private LocalDate selectedDay;
@@ -41,7 +42,7 @@ public class MyCalendar {
      * Gets an {@code ArrayList} of {@code OneTimeEvent}.
      * @return  the {@code ArrayList}
      */
-    public ArrayList<OneTimeEvent> getOneTimeEventsList() {return oneTimeEventsList;}
+    public ArrayList<Event> getOneTimeEventsList() {return oneTimeEventsList;}
 
     /**
      * Gets an {@code ArrayList} of {@code RecurringEvent}.
@@ -55,29 +56,29 @@ public class MyCalendar {
      * @param newEvent  the event being added
      * @return          true if the event is successfully added and false if it conflicts with an event
      */
-    public boolean add(OneTimeEvent newEvent) {
+    public boolean add(Event newEvent) {
         // grab the eventList for this date
-        ArrayList<Event> eventList = events.get(newEvent.getDate());
+        TreeSet<Event> eventList = events.get(newEvent.getStartDate());
 
         // if there is an event list for this date
         // go through each event to make sure the event TimeInterval isn't conflicting
         if (eventList != null) {
             for (Event event : eventList) {
                 // the eventTimeInterval is conflicting, don't add the event
-                if (newEvent.timeInterval.isConflicting(event.timeInterval)) {
+                if (newEvent.getTimeInterval().isConflicting(event.getTimeInterval())) {
                     return false;   // the event is conflicting, don't add it
                 }
             }
         }
         // there isn't an eventList for this date, create a new one
         else {
-            eventList = new ArrayList<>();
+            eventList = new TreeSet<>();
         }
 
         eventList.add(newEvent);                            // add event to eventList for this date
         oneTimeEventsList.add(newEvent);                    // add event to oneTimeEvents list
-        oneTimeEventsList.sort(OneTimeEvent::compareTo);    // sort by start time
-        events.put(newEvent.getDate(), eventList);          // add event to events list
+        oneTimeEventsList.sort(Event.DATE_TIME_ORDER);      // sort by start date and time
+        events.put(newEvent.getStartDate(), eventList);     // add event to events list
         return true;
     }
 
@@ -88,15 +89,15 @@ public class MyCalendar {
     public void add(RecurringEvent newEvent) {
         // for every date the event recurs on, add it to the calendar
         for (LocalDate date : newEvent.getDates()) {
-            ArrayList<Event> eventList = events.get(date);
+            TreeSet<Event> eventList = events.get(date);
             if (eventList == null) {
-                eventList = new ArrayList<>();
+                eventList = new TreeSet<>();
             }
             eventList.add(newEvent);
             events.put(date, eventList);
         }
         recurringEventsList.add(newEvent);
-        recurringEventsList.sort(RecurringEvent::compareTo);
+        recurringEventsList.sort(Event.DATE_TIME_ORDER);
     }
 
     /**
@@ -150,22 +151,28 @@ public class MyCalendar {
     public String displayEventsList() {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("One Time Events:\n");
-        LocalDate date = oneTimeEventsList.get(0).getDate();
+        LocalDate date = oneTimeEventsList.get(0).getStartDate();
         DateTimeFormatter dayMonthDay = DateTimeFormatter.ofPattern("EEEE, MMMM d");
         stringBuilder.append(dayMonthDay.format(date)).append("\n");
-        for (OneTimeEvent event : oneTimeEventsList) {
-            if (!date.equals(event.getDate())) {
-                date = event.getDate();
+        for (Event event : oneTimeEventsList) {
+            if (!date.equals(event.getStartDate())) {
+                date = event.getStartDate();
                 stringBuilder.append("\n").append(dayMonthDay.format(date)).append("\n");
             }
             stringBuilder.append(event);
         }
         stringBuilder.append("\n");
+        stringBuilder.append(displayRecurringEventList());
+        stringBuilder.append("\n");
+        return stringBuilder.toString();
+    }
+
+    public String displayRecurringEventList() {
+        StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Recurring Events:\n");
         for (RecurringEvent e : recurringEventsList) {
             stringBuilder.append(e);
         }
-        stringBuilder.append("\n");
         return stringBuilder.toString();
     }
 
@@ -176,29 +183,9 @@ public class MyCalendar {
      * @return      true if the event was successfully deleted and false if it wasn't
      */
     public boolean deleteEvent(String name, LocalDate date) {
-        ArrayList<Event> eventList = events.remove(date);
-        // there are events on this date
-        if (eventList != null) {
-            // go through each event and delete the one with the name specified
-            for (Event event : eventList) {
-                if (event.name.equals(name)) {
-                    eventList.remove(event);
-                    if (event.getClass().equals(OneTimeEvent.class)) {
-                        oneTimeEventsList.remove(event);
-                    }
-                    else if (event.getClass().equals(RecurringEvent.class)) {
-                        ((RecurringEvent) event).getDates().remove(date);
-                        if (((RecurringEvent) event).getDates().isEmpty()) {
-                            recurringEventsList.remove(event);
-                        }
-                    }
-                    if (!eventList.isEmpty()) events.put(date, eventList); // re add the eventList
-                    return true;
-                }
-            }
-        }
-        // there aren't any events on this date.
-        return false;
+        TreeSet<Event> eventList = events.get(date);
+        oneTimeEventsList.removeIf(event -> event.getName().equals(name));
+        return eventList.removeIf(event -> event.getName().equals(name));
     }
 
     /**
@@ -215,26 +202,29 @@ public class MyCalendar {
      * @param date  the date the events are being deleted on
      */
     public void deleteAllEventsOn(LocalDate date) {
-        ArrayList<Event> eventList = events.remove(date);
+        TreeSet<Event> eventList = events.remove(date);
         if (eventList != null) {
             eventList.clear();
+            oneTimeEventsList.removeIf(event -> event.getStartDate().equals(date));
         }
-        oneTimeEventsList.removeIf(event -> event.getDate().equals(date));
     }
 
     /**
-     * Deletes all recurring events
+     * Deletes a {@code RecurringEvent} with the name provided.
+     * @param name  name of the {@code RecurringEvent} being removed.
+     * @return      True if the {@code RecurringEvent} event got removed
      */
-    public void deleteAllRecurringEvents() {
-        for (RecurringEvent event: recurringEventsList) {
-            for (LocalDate date: event.getDates()) {
-                ArrayList<Event> eventList = events.remove(date);
-                eventList.remove(event);
-                // if there are still events on this date, add it back to the events list
-                if (!eventList.isEmpty()) events.put(date, eventList);
+    public boolean deleteRecurringEvent(String name) {
+        for (RecurringEvent recurringEvent: recurringEventsList) {
+            if (recurringEvent.getName().equals(name)) {
+                for (LocalDate date : recurringEvent.getDates()) {
+                    TreeSet<Event> eventList = events.remove(date);
+                    eventList.removeIf(event -> event.getName().equals(name));
+                }
+                return recurringEventsList.removeIf(event -> event.getName().equals(name));
             }
         }
-        recurringEventsList.clear();
+        return false;
     }
 
     /**
@@ -292,10 +282,12 @@ public class MyCalendar {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Today's Events:\n");
         if  (events.get(today) != null) {
-            for (Event event : events.get(today)) {
-                stringBuilder.append(event);
-                stringBuilder.append("\n");
+            if (events.get(today).size() > 0) {
+                for (Event event : events.get(today)) {
+                    stringBuilder.append(event);
+                }
             }
+            else stringBuilder.append("No Events Today\n");
         }
         else stringBuilder.append("No Events Today\n");
         return stringBuilder.toString();
@@ -310,9 +302,12 @@ public class MyCalendar {
         DateTimeFormatter dayMonthDay = DateTimeFormatter.ofPattern("EEEE, MMMM d");
         stringBuilder.append(dayMonthDay.format(selectedDay)).append("\n");
         if  (events.get(selectedDay) != null) {
-            for (Event event : events.get(selectedDay)) {
-                stringBuilder.append(event);
+            if (events.get(selectedDay).size() > 0) {
+                for (Event event : events.get(selectedDay)) {
+                    stringBuilder.append(event);
+                }
             }
+            else stringBuilder.append("No Events Today\n");
         }
         else stringBuilder.append("No Events Today\n");
         stringBuilder.append("\n");
