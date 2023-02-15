@@ -7,7 +7,7 @@ import java.time.LocalTime;
  * A time interval containing a start time and end time.
  * For example, {@code 10:30-11:30}
  * @author Jonathan Stewart Thomas
- * @version 1.0.0.230209
+ * @version 1.0.1.230214
  */
 public class TimeInterval {
     private final LocalTime startTime;
@@ -17,10 +17,11 @@ public class TimeInterval {
      * Creates a {@code TimeInterval} with a start and end time.
      * @param startTime             start time of the interval
      * @param endTime               end time of the interval
-     * @throws DateTimeException    if the start time is after the end time
+     * @throws DateTimeException    if the end time is not after the start time
      */
     public TimeInterval(LocalTime startTime, LocalTime endTime) {
-        if (startTime.isAfter(endTime)) throw new DateTimeException("startTime must be before endTime");
+        if (startTime.isAfter(endTime) || startTime.equals(endTime))
+            throw new DateTimeException("endTime must be after start time");
         this.startTime = startTime;
         this.endTime = endTime;
     }
@@ -63,7 +64,8 @@ public class TimeInterval {
      * @return              true if it is conflicting, false if it isn't
      */
     public boolean isConflicting(TimeInterval timeInterval) {
-        if (this.isBetween(timeInterval)) return true;
+        if (this.startTime.equals(timeInterval.startTime) || this.endTime.equals(timeInterval.endTime)) return true;
+        else if (this.isBetween(timeInterval)) return true;
         else if (timeInterval.isBetween(this)) return true;
         else return timeInterval.isBetween(startTime, endTime);
     }
