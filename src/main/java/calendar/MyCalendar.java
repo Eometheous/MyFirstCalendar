@@ -12,7 +12,7 @@ import java.util.TreeSet;
  * {@code MyCalendar} can be outputted as a String showing a day view a month view,
  * or a combination of both.
  * @author Jonathan Stewart Thomas
- * @version 1.0.1.230215
+ * @version 1.0.2.230215
  */
 public class MyCalendar {
     private final HashMap<LocalDate, TreeSet<Event>> events;
@@ -218,7 +218,7 @@ public class MyCalendar {
         for (RecurringEvent recurringEvent: recurringEventsList) {
             if (recurringEvent.getName().equals(name)) {
                 for (LocalDate date : recurringEvent.getDates()) {
-                    TreeSet<Event> eventList = events.remove(date);
+                    TreeSet<Event> eventList = events.get(date);
                     eventList.removeIf(event -> event.getName().equals(name));
                 }
                 return recurringEventsList.removeIf(event -> event.getName().equals(name));
