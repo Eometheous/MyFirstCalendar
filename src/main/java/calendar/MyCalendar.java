@@ -210,6 +210,18 @@ public class MyCalendar {
     }
 
     /**
+     * Checks if there is an {@code Event} on a certain date.
+     * @param date  The date we are checking.
+     * @return      true if there is an event on that date
+     */
+    private boolean hasEventsOn(LocalDate date) {
+        if (events.get(date) != null) {
+            return events.get(date).size() > 0;
+        }
+        return false;
+    }
+
+    /**
      * Deletes a {@code RecurringEvent} with the name provided.
      * @param name  name of the {@code RecurringEvent} being removed.
      * @return      True if the {@code RecurringEvent} event got removed
@@ -259,12 +271,11 @@ public class MyCalendar {
                 stringBuilder.append(String.format("[%-2s]", day.format(nextDay)));
             }
             // add curly brackets if this day has an event
-            else if (events.containsKey(nextDay)) {
+            else if (hasEventsOn(nextDay)) {
                 stringBuilder.append(String.format("{%-2s}", day.format(nextDay)));
             }
             else {
-                stringBuilder.append(String.format(" %-2s", day.format(nextDay)));
-                stringBuilder.append(" ");
+                stringBuilder.append(String.format(" %-2s ", day.format(nextDay)));
             }
 
             // go to the next day
@@ -281,13 +292,10 @@ public class MyCalendar {
     public String displayTodaysEvents() {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Today's Events:\n");
-        if  (events.get(today) != null) {
-            if (events.get(today).size() > 0) {
-                for (Event event : events.get(today)) {
-                    stringBuilder.append(event);
-                }
+        if  (hasEventsOn(today)) {
+            for (Event event : events.get(today)) {
+                stringBuilder.append(event);
             }
-            else stringBuilder.append("No Events Today\n");
         }
         else stringBuilder.append("No Events Today\n");
         return stringBuilder.toString();
@@ -301,13 +309,10 @@ public class MyCalendar {
         StringBuilder stringBuilder = new StringBuilder();
         DateTimeFormatter dayMonthDay = DateTimeFormatter.ofPattern("EEEE, MMMM d");
         stringBuilder.append(dayMonthDay.format(selectedDay)).append("\n");
-        if  (events.get(selectedDay) != null) {
-            if (events.get(selectedDay).size() > 0) {
-                for (Event event : events.get(selectedDay)) {
-                    stringBuilder.append(event);
-                }
+        if  (hasEventsOn(selectedDay)) {
+            for (Event event : events.get(selectedDay)) {
+                stringBuilder.append(event);
             }
-            else stringBuilder.append("No Events Today\n");
         }
         else stringBuilder.append("No Events Today\n");
         stringBuilder.append("\n");
