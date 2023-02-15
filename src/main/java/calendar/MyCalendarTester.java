@@ -14,7 +14,7 @@ import java.util.Scanner;
  * and months or jump to a specific date. Today's date is shown with [] brackets and dates with an event have {} brackets.
  * Events can be added and deleted on {@code MyCalendar}.
  * @author Jonathan Stewart Thomas
- * @version 1.0.1.230211
+ * @version 1.0.2.230215
  */
 public class MyCalendarTester {
     private static final String MAIN_MENU_OPTIONS = """
@@ -156,7 +156,7 @@ public class MyCalendarTester {
         startTime = LocalTime.parse(stdio.nextLine(), hourMinute);
         System.out.print("End time (Hour:minute): ");
         endTime = LocalTime.parse(stdio.nextLine(), hourMinute);
-        OneTimeEvent event = new OneTimeEvent(name, date, startTime, endTime);
+        Event event = new Event(name, date, startTime, endTime);
         if (myCalendar.add(event)) {
             System.out.println("Event added\n");
         }
@@ -198,7 +198,7 @@ public class MyCalendarTester {
                 case "S" -> deleteSelected();
                 case "A" -> myCalendar.deleteAllEvents();
                 case "E" -> deleteEventsOn();
-                case "R" -> myCalendar.deleteAllRecurringEvents();
+                case "R" -> deleteRecurringEvent();
             }
         } while(!option.equals("S") && !option.equals("A") && !option.equals("E") && !option.equals("R"));
     }
@@ -230,6 +230,14 @@ public class MyCalendarTester {
         DateTimeFormatter monthDayYear = DateTimeFormatter.ofPattern("M/d/yyyy");
         LocalDate date = LocalDate.parse(stdio.nextLine(), monthDayYear);
         myCalendar.deleteAllEventsOn(date);
+    }
+
+    public static void deleteRecurringEvent() {
+        System.out.println(myCalendar.displayRecurringEventList());
+        System.out.print("Enter the name of the event to delete: ");
+        String name = stdio.nextLine();
+        if (myCalendar.deleteRecurringEvent(name)) System.out.println("Event Deleted\n");
+        else System.out.println("Deletion Failed!\n");
     }
 
     /**
@@ -265,7 +273,7 @@ public class MyCalendarTester {
                     LocalDate date = LocalDate.parse(splitInfo[0], monthDayYear);
                     LocalTime startTime = LocalTime.parse(splitInfo[1], hourMinute);
                     LocalTime endTime = LocalTime.parse(splitInfo[2], hourMinute);
-                    OneTimeEvent event = new OneTimeEvent(name, date, startTime, endTime);
+                    Event event = new Event(name, date, startTime, endTime);
                     myCalendar.add(event);
                 }
 
@@ -284,7 +292,7 @@ public class MyCalendarTester {
     public static boolean saveFile() {
         try (FileWriter fileWriter = new FileWriter("output.txt")) {
             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-            for (OneTimeEvent e: myCalendar.getOneTimeEventsList()) {
+            for (Event e: myCalendar.getOneTimeEventsList()) {
                 bufferedWriter.write(e.inFormatMonthDayYear());
             }
             for (RecurringEvent e: myCalendar.getRecurringEventsList()) {
