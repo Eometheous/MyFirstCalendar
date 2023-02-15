@@ -11,9 +11,9 @@ import java.util.ArrayList;
  * A {@code RecurringEvent} takes place on multiple days of the week and repeats weekly
  * @see calendar.Event
  * @author Jonathan Stewart Thomas
- * @version 1.0.0.230209
+ * @version 1.0.1.230214
  */
-public class RecurringEvent extends Event implements Comparable<RecurringEvent>{
+public class RecurringEvent extends Event{
     private final ArrayList<LocalDate> dates;
     private final String days;
 
@@ -31,8 +31,9 @@ public class RecurringEvent extends Event implements Comparable<RecurringEvent>{
      */
     public RecurringEvent(String name, String days, LocalDate startDate,
                           LocalDate endDate, LocalTime startTime, LocalTime endTime) {
-        super(name, startTime, endTime);
-        if (startDate.isAfter(endDate)) throw new DateTimeException("Start date must be before end date");
+        super(name, startDate, startTime, endTime);
+        if (startDate.isAfter(endDate) || startDate.equals(endDate))
+            throw new DateTimeException("end date must be after start date");
 
         dates = new ArrayList<>();
         this.days = days;
@@ -91,6 +92,7 @@ public class RecurringEvent extends Event implements Comparable<RecurringEvent>{
      * Gets the date the {@code RecurringEvent} starts recurring
      * @return  the starting date
      */
+    @Override
     public LocalDate getStartDate() {return dates.get(0);}
 
     /**
@@ -104,47 +106,11 @@ public class RecurringEvent extends Event implements Comparable<RecurringEvent>{
      * start and end dates.
      * @return  String of {@code RecurringEvent}
      */
+    @Override
     public String inFormatMonthDayYear() {
         DateTimeFormatter monthDayYear = DateTimeFormatter.ofPattern("M/d/yy");
-        return String.format("%s\n%s %s %s %s\n", name,
-                days, monthDayYear.format(getStartDate()), monthDayYear.format(getEndDate()), timeInterval);
-    }
-
-    /**
-     * From implementation of {@code Comparable}.
-     * Compares this {@code RecurringEvent} with another {@code RecurringEvent}.
-     * If this {@code RecurringEvent} is before the other {@code RecurringEvent},
-     * it takes place before the other one. If {@code RecurringEvent} is after the
-     * other {@code RecurringEvent}, it takes place after the other one.
-     * @see Comparable
-     * @param otherEvent the other {@code RecurringEvent} being compared
-     * @return {@code -1} if before and {@code 1} if after
-     */
-    @Override
-    public int compareTo(RecurringEvent otherEvent) {
-        if (getStartDate().isBefore(otherEvent.getStartDate()) || startTimeIsBefore(otherEvent)) return -1;
-        else if (getStartDate().isAfter(otherEvent.getStartDate()) || startTimeIsAfter(otherEvent)) return 1;
-        return 0;    // can't really happen, but is needed anyway
-    }
-
-    /**
-     * A helper function used in {@code compareTo} to check if the start time of this
-     * is after {@code otherEvent}.
-     * @param otherEvent    the event being compared to.
-     * @return              true if this {@code RecurringEvent} starts after the other event.
-     */
-    private boolean startTimeIsAfter(RecurringEvent otherEvent) {
-        return timeInterval.getStart().isAfter(otherEvent.timeInterval.getStart());
-    }
-
-    /**
-     * A helper function used in {@code compareTo} to check if the start time of this
-     * is before {@code otherEvent}.
-     * @param otherEvent    the event being compared to.
-     * @return              true if this {@code RecurringEvent} starts before the other event.
-     */
-    private boolean startTimeIsBefore(RecurringEvent otherEvent) {
-        return timeInterval.getStart().isBefore(otherEvent.timeInterval.getStart());
+        return String.format("%s\n%s %s %s %s\n", getName(),
+                days, monthDayYear.format(getStartDate()), monthDayYear.format(getEndDate()), getTimeInterval());
     }
 
     /**
@@ -154,7 +120,7 @@ public class RecurringEvent extends Event implements Comparable<RecurringEvent>{
     @Override
     public String toString() {
         DateTimeFormatter monthDayYear = DateTimeFormatter.ofPattern("M/d/yy");
-        return String.format("%s: %s every %s from %s to %s\n", name, timeInterval, days,
+        return String.format("%s: %s every %s from %s to %s\n", getName(), getTimeInterval(), days,
                 monthDayYear.format(getStartDate()), monthDayYear.format(getEndDate()));
     }
 }
