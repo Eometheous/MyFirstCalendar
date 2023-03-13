@@ -11,13 +11,18 @@ import java.util.Comparator;
  * {@code Event} start times. {@code Event} also utilizes
  * a Comparator to sort by start date and start time.
  * @author Jonathan Stewart Thomas
- * @version 1.0.1.230214
+ * @version 1.0.2.230216
  */
-public class Event implements Comparable<Event>{
+public class Event{
     public static final Comparator<Event> DATE_TIME_ORDER = (e1, e2) -> {
         if (e1.getStartDate().isBefore(e2.getStartDate())) return -1;
         else if (e1.getStartDate().isAfter(e2.getStartDate())) return 1;
         else if (e1.getTimeInterval().getStart().isBefore(e2.getTimeInterval().getStart())) return -1;
+        else if (e1.getTimeInterval().getStart().isAfter(e2.getTimeInterval().getStart())) return 1;
+        return 0;
+    };
+    public static final Comparator<Event> START_TIME_ORDER = (e1, e2) -> {
+        if (e1.getTimeInterval().getStart().isBefore(e2.getTimeInterval().getStart())) return -1;
         else if (e1.getTimeInterval().getStart().isAfter(e2.getTimeInterval().getStart())) return 1;
         return 0;
     };
@@ -42,29 +47,6 @@ public class Event implements Comparable<Event>{
     protected String getName() {return name;}
     protected LocalDate getStartDate() {return startDate;}
     protected TimeInterval getTimeInterval() {return timeInterval;}
-
-    /**
-     * From implementation of Comparable.
-     * Compares this {@code Event} with another {@code Event}.
-     * @see Comparable
-     * @param otherEvent the other {@code Event} being compared to this one.
-     * @return  -1 if before and 1 if after
-     */
-    public int compareTo(Event otherEvent) {
-        if (timeIsBefore(otherEvent)){return -1;}
-        else if (!timeIsBefore(otherEvent)) {return 1;}
-        return 0;   // cant really happen, but is needed anyway
-    }
-
-    /**
-     * Helper function used in {@code compareTo} to see if the start time is before
-     * the other {@code Event}'s start time
-     * @param otherEvent other event being compared
-     * @return  true if before, false if after
-     */
-    private boolean timeIsBefore(Event otherEvent) {
-        return timeInterval.getStart().isBefore(otherEvent.getTimeInterval().getStart());
-    }
 
     /**
      * Outputs {@code Event} as a String using the format {@code M/d/yy}

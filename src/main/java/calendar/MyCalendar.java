@@ -2,7 +2,6 @@ package calendar;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TreeSet;
 
@@ -12,12 +11,12 @@ import java.util.TreeSet;
  * {@code MyCalendar} can be outputted as a String showing a day view a month view,
  * or a combination of both.
  * @author Jonathan Stewart Thomas
- * @version 1.0.2.230215
+ * @version 1.0.3.230216
  */
 public class MyCalendar {
     private final HashMap<LocalDate, TreeSet<Event>> events;
-    private final ArrayList<RecurringEvent> recurringEventsList;
-    private final ArrayList<Event> oneTimeEventsList;
+    private final TreeSet<RecurringEvent> recurringEventsList;
+    private final TreeSet<Event> oneTimeEventsList;
     private final LocalDate today;
     private LocalDate firstDay;
     private LocalDate selectedDay;
@@ -30,8 +29,8 @@ public class MyCalendar {
      */
     public MyCalendar() {
         events = new HashMap<>();
-        recurringEventsList = new ArrayList<>();
-        oneTimeEventsList = new ArrayList<>();
+        recurringEventsList = new TreeSet<>(Event.DATE_TIME_ORDER);
+        oneTimeEventsList = new TreeSet<>(Event.DATE_TIME_ORDER);
         today = LocalDate.now();
         selectedDay = today;
         firstDay = LocalDate.of(today.getYear(), today.getMonth(), 1);
@@ -42,13 +41,13 @@ public class MyCalendar {
      * Gets an {@code ArrayList} of {@code OneTimeEvent}.
      * @return  the {@code ArrayList}
      */
-    public ArrayList<Event> getOneTimeEventsList() {return oneTimeEventsList;}
+    public TreeSet<Event> getOneTimeEventsList() {return oneTimeEventsList;}
 
     /**
      * Gets an {@code ArrayList} of {@code RecurringEvent}.
      * @return  the {@code ArrayList}
      */
-    public ArrayList<RecurringEvent> getRecurringEventsList() {return  recurringEventsList;}
+    public TreeSet<RecurringEvent> getRecurringEventsList() {return  recurringEventsList;}
 
     /**
      * Adds a {@code OneTimeEvent} to the event list. If the event conflicts with an existing event
@@ -72,12 +71,11 @@ public class MyCalendar {
         }
         // there isn't an eventList for this date, create a new one
         else {
-            eventList = new TreeSet<>();
+            eventList = new TreeSet<>(Event.START_TIME_ORDER);
         }
 
         eventList.add(newEvent);                            // add event to eventList for this date
         oneTimeEventsList.add(newEvent);                    // add event to oneTimeEvents list
-        oneTimeEventsList.sort(Event.DATE_TIME_ORDER);      // sort by start date and time
         events.put(newEvent.getStartDate(), eventList);     // add event to events list
         return true;
     }
@@ -91,13 +89,12 @@ public class MyCalendar {
         for (LocalDate date : newEvent.getDates()) {
             TreeSet<Event> eventList = events.get(date);
             if (eventList == null) {
-                eventList = new TreeSet<>();
+                eventList = new TreeSet<>(Event.START_TIME_ORDER);
             }
             eventList.add(newEvent);
             events.put(date, eventList);
         }
         recurringEventsList.add(newEvent);
-        recurringEventsList.sort(Event.DATE_TIME_ORDER);
     }
 
     /**
@@ -151,7 +148,7 @@ public class MyCalendar {
     public String displayEventsList() {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("One Time Events:\n");
-        LocalDate date = oneTimeEventsList.get(0).getStartDate();
+        LocalDate date = oneTimeEventsList.first().getStartDate();
         DateTimeFormatter dayMonthDay = DateTimeFormatter.ofPattern("EEEE, MMMM d");
         stringBuilder.append(dayMonthDay.format(date)).append("\n");
         for (Event event : oneTimeEventsList) {
